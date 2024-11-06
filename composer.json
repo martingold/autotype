@@ -1,0 +1,40 @@
+{
+    "name": "martingold/autotype",
+    "description": "Library to register doctrine types of similar types",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MartinGold\\AutoType\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MartinGold\\AutoType\\Test\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Martin Gold",
+            "email": "martin.gold@volny.cz"
+        }
+    ],
+    "scripts": {
+        "cs": "vendor/bin/php-cs-fixer check",
+        "csf": "vendor/bin/php-cs-fixer fix",
+        "phpstan": "vendor/bin/phpstan"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.12",
+        "phpstan/phpstan-strict-rules": "^1.6",
+        "spaze/phpstan-disallowed-calls": "^3.5",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpunit/phpunit": "^11.4",
+        "symfony/cache": "^7.1"
+    },
+    "require": {
+        "doctrine/dbal": "^4.2",
+        "league/construct-finder": "^1.4",
+        "doctrine/orm": "^3.3"
+    }
+}
