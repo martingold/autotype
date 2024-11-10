@@ -13,6 +13,10 @@ parameters:
         uncheckedExceptionClasses:
             - 'LogicException'
             - 'ReflectionException'
+            - 'PHPUnit\Framework\ExpectationFailedException'
+            - 'PHPUnit\Framework\Exception'
+            - 'Psr\Cache\InvalidArgumentException'
+            - 'Doctrine\ORM\Exception\ORMException'
 includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon

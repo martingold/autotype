@@ -22,7 +22,13 @@
     "scripts": {
         "cs": "vendor/bin/php-cs-fixer check",
         "csf": "vendor/bin/php-cs-fixer fix",
-        "phpstan": "vendor/bin/phpstan"
+        "phpstan": "vendor/bin/phpstan",
+        "unit": "vendor/bin/phpunit",
+        "qa": [
+            "@csf",
+            "@phpstan",
+            "@unit"
+        ]
     },
     "require-dev": {
         "phpstan/phpstan": "^1.12",

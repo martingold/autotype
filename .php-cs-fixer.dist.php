@@ -15,6 +15,7 @@ return (new Config())
         '@Symfony' => true,
         '@Symfony:risky' => true,
         'yoda_style' => false, // Override @Symfony
+        'self_accessor' => false, // Override @Symfony
         'phpdoc_align' => [
             'align' => 'left',
         ],
