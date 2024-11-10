@@ -11,7 +11,12 @@ for every single value object type.
 ```shell
 composer require martingold/autotype
 ```
+You have few options:
+1. Add `#[ValueGetter]` and `#[Constructor]` (not required) attributes to your ValueObject, DTO, Crate, ...
+2. Make your objects implement ValueObject interface
+3. Create your own driver (implement your own `TypeDefinitionDriver`). See below 👇
 
+Example using attributes:
 ```php
 final readonly class Url
 {
@@ -20,9 +25,7 @@ final readonly class Url
     ) {
     }
     
-    /**
-     * @throws MalformedUrl
-     */
+    // Regular constructor is used when attribute not found
     #[Constructor]
     public static function create(string $url): self
     {
@@ -30,18 +33,18 @@ final readonly class Url
             throw MalformedUrl::fromString($value);
         }
         
-        return new self($url )
+        return new self($url)
+    }
+    
+    #[ValueGetter]
+    public function getValue(): string
+    {
+        return $this->value;
     }
     
     public function isSecure(): bool
     {
         return str_starts_with('https://', $this->value);
-    }
-
-    #[ValueGetter]
-    public function getValue(): string
-    {
-        return $this->value;
     }
 }
 ```
@@ -82,7 +85,8 @@ class Company
 See `tests/Entity` for the example usage of the drivers. The library comes with two default drivers:
 #### AttributeTypeDefinitionDriver
 This driver registers all classes with a `#[ValueGetter]` method as Doctrine types. If a static factory
-method is needed, add the `#[Constructor]` attribute to create the object back from database value.
+method is needed, add the `#[Constructor]` to the method which should be used for constructing the object back from
+database value.
 #### InterfaceTypeDefinitionDriver
 This driver registers all classes implementing `ValueObject` interface.
 
@@ -142,6 +146,7 @@ class CustomTypeDefinitionDriver implements TypeDefinitionDriver
 
     /**
      * Method to use when creating the object from database value. Must have single argument. 
+     * When null returned, the regular constructor is used.  
      */
     public function getConstructorMethodName(ReflectionClass $class): string|null
     {
