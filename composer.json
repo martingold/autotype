@@ -1,6 +1,6 @@
 {
     "name": "martingold/autotype",
-    "description": "Library to register doctrine types of similar types",
+    "description": "Automatically value objects (DTOs, crates) as Doctrine types",
     "type": "library",
     "license": "MIT",
     "autoload": {
