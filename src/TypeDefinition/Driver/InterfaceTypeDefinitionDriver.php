@@ -2,22 +2,18 @@
 
 declare(strict_types=1);
 
-namespace MartinGold\AutoType\Factory;
+namespace MartinGold\AutoType\TypeDefinition\Driver;
 
 use Doctrine\DBAL\Types\Type;
-use MartinGold\AutoType\Attribute\Constructor;
-use MartinGold\AutoType\Attribute\ValueGetter;
 use MartinGold\AutoType\DynamicType\DynamicType;
+use MartinGold\AutoType\DynamicType\IntegerDynamicType;
 use MartinGold\AutoType\DynamicType\StringDynamicType;
-use MartinGold\AutoType\Exception\ShouldNotHappen;
 use MartinGold\AutoType\Exception\UnsupportedType;
 use MartinGold\AutoType\ValueObject;
 use ReflectionClass;
-
-use ReflectionMethod;
 use ReflectionNamedType;
 
-class InterfaceTypeDefinitionFactory implements TypeDefinitionFactory
+class InterfaceTypeDefinitionDriver implements TypeDefinitionDriver
 {
     /**
      * @param ReflectionClass<object> $class
@@ -36,7 +32,8 @@ class InterfaceTypeDefinitionFactory implements TypeDefinitionFactory
     {
         return match ($this->getValueMethodReturnType($class)) {
             'string' => StringDynamicType::class,
-            default => throw new UnsupportedType('Only string type is supported.')
+            'int' => IntegerDynamicType::class,
+            default => throw new UnsupportedType('Only string type is supported.'),
         };
     }
 
@@ -50,7 +47,7 @@ class InterfaceTypeDefinitionFactory implements TypeDefinitionFactory
 
     public function getConstructorMethodName(ReflectionClass $class): string|null
     {
-        return null;
+        return 'create';
     }
 
     /**
@@ -61,11 +58,11 @@ class InterfaceTypeDefinitionFactory implements TypeDefinitionFactory
         $returnType = $class->getMethod('getValue')->getReturnType();
 
         if (!$returnType instanceof ReflectionNamedType) {
-            throw new UnsupportedType("Intersection or union return type not supported in method {$class->getName()}::{$method->getName()}()");
+            throw new UnsupportedType("Intersection or union return type not supported in method {$class->getName()}::getValue()");
         }
 
         if (!$returnType->isBuiltin()) {
-            throw new UnsupportedType("Only scalar return types are supported in {$class->getName()}::{$method->getName()}()");
+            throw new UnsupportedType("Only scalar return types are supported in {$class->getName()}::getValue()");
         }
 
         return $returnType->getName();

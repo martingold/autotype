@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace MartinGold\AutoType;
+namespace MartinGold\AutoType\TypeDefinition;
 
 use Doctrine\DBAL\Types\Type;
 use MartinGold\AutoType\DynamicType\DynamicType;
 
 /**
- * @phpstan-type TypeDefinition array{
- *      dynamicTypeClass: class-string<Type>,
+ * @phpstan-type TypeDefinitionShape array{
+ *      dynamicTypeClass: class-string<DynamicType&Type>,
  *      typeName: string,
  *      valueObjectClass: class-string<object>,
+ *      getterMethodName: string,
  *      constructorMethodName: string|null,
  *  }
  */
@@ -26,12 +27,12 @@ final readonly class TypeDefinition
         public string $typeName,
         public string $valueObjectClass,
         public string $getterMethodName,
-        public string|null $constructorMethodName
+        public string|null $constructorMethodName,
     ) {
     }
 
     /**
-     * @return TypeDefinition
+     * @return TypeDefinitionShape
      */
     public function toArray(): array
     {
@@ -45,13 +46,8 @@ final readonly class TypeDefinition
     }
 
     /**
-     * @return TypeDefinition
+     * @param TypeDefinitionShape $data
      */
-    public function __serialize(): array
-    {
-        return $this->toArray();
-    }
-
     public function fromArray(array $data): self
     {
         return new self(
@@ -64,7 +60,15 @@ final readonly class TypeDefinition
     }
 
     /**
-     * @param TypeDefinition $data
+     * @return TypeDefinitionShape
+     */
+    public function __serialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * @param TypeDefinitionShape $data
      */
     public function __unserialize(array $data): void
     {

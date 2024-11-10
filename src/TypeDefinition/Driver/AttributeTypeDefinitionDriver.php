@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace MartinGold\AutoType\Factory;
+namespace MartinGold\AutoType\TypeDefinition\Driver;
 
 use Doctrine\DBAL\Types\Type;
 use MartinGold\AutoType\Attribute\Constructor;
 use MartinGold\AutoType\Attribute\ValueGetter;
 use MartinGold\AutoType\DynamicType\DynamicType;
+use MartinGold\AutoType\DynamicType\IntegerDynamicType;
 use MartinGold\AutoType\DynamicType\StringDynamicType;
 use MartinGold\AutoType\Exception\ShouldNotHappen;
 use MartinGold\AutoType\Exception\UnsupportedType;
 use ReflectionClass;
-
 use ReflectionMethod;
 use ReflectionNamedType;
 
-class AttributeTypeDefinitionFactory implements TypeDefinitionFactory
+class AttributeTypeDefinitionDriver implements TypeDefinitionDriver
 {
     /**
      * @param ReflectionClass<object> $class
@@ -35,7 +35,8 @@ class AttributeTypeDefinitionFactory implements TypeDefinitionFactory
     {
         return match ($this->getValueMethodReturnType($class)) {
             'string' => StringDynamicType::class,
-            default => throw new UnsupportedType('Only string type is supported.')
+            'int' => IntegerDynamicType::class,
+            default => throw new UnsupportedType('Only string type is supported.'),
         };
     }
 
@@ -55,6 +56,7 @@ class AttributeTypeDefinitionFactory implements TypeDefinitionFactory
 
     /**
      * @param ReflectionClass<object> $class
+     *
      * @throws UnsupportedType
      */
     private function getValueMethodReturnType(ReflectionClass $class): string

@@ -6,19 +6,26 @@ namespace MartinGold\AutoType;
 
 use Doctrine\DBAL\Exception as DoctrineException;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\TypeRegistry;
 use LogicException;
-use MartinGold\AutoType\TypeDefinitionFinder\TypeDefinitionFinder;
+use MartinGold\AutoType\TypeDefinition\Provider\TypeDefinitionProvider;
 
 final readonly class DynamicTypeRegistry
 {
+    private TypeDefinitionProvider $typeDefinitionProvider;
+    private TypeRegistry $typeRegistry;
+
     public function __construct(
-        private TypeDefinitionFinder $dynamicTypeProvider,
+        TypeDefinitionProvider $typeDefinitionProvider,
+        TypeRegistry|null $typeRegistry = null,
     ) {
+        $this->typeDefinitionProvider = $typeDefinitionProvider;
+        $this->typeRegistry = $typeRegistry ?? Type::getTypeRegistry();
     }
 
     public function register(): void
     {
-        $customTypes = $this->dynamicTypeProvider->get();
+        $customTypes = $this->typeDefinitionProvider->get();
 
         foreach ($customTypes as $customType) {
             $typeClass = $customType->dynamicTypeClass;
@@ -31,12 +38,12 @@ final readonly class DynamicTypeRegistry
 
             $typeName = $customType->typeName;
 
-            if (Type::hasType($typeName)) {
+            if ($this->typeRegistry->has($typeName)) {
                 continue;
             }
 
             try {
-                Type::getTypeRegistry()->register($typeName, $type);
+                $this->typeRegistry->register($typeName, $type);
             } catch (DoctrineException $e) {
                 throw new LogicException('Can not register type ' . $customType->typeName, 0, $e);
             }

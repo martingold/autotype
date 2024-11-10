@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace MartinGold\AutoType\DynamicType;
 
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
-use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
 use MartinGold\AutoType\Exception\ShouldNotHappen;
 use MartinGold\AutoType\Exception\UnsupportedType;
 
 use function call_user_func;
 use function is_callable;
+use function is_int;
 use function is_object;
-use function is_string;
 
-class StringDynamicType extends StringType implements DynamicType
+class IntegerDynamicType extends Type implements DynamicType
 {
     /**
      * @var class-string<object>
@@ -30,7 +31,9 @@ class StringDynamicType extends StringType implements DynamicType
      * @param class-string<object> $class
      */
     public static function create(
-        string $class, string $getterMethodName, string|null $constructorMethodName = null,
+        string $class,
+        string $getterMethodName,
+        string|null $constructorMethodName = null,
     ): self {
         $type = new self();
         $type->class = $class;
@@ -42,8 +45,8 @@ class StringDynamicType extends StringType implements DynamicType
 
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): object|null
     {
-        if ($value !== null && !is_string($value)) {
-            throw new UnsupportedType('Value must be string');
+        if ($value !== null && !is_int($value)) {
+            throw new UnsupportedType('Value must be int');
         }
 
         if ($value === null) {
@@ -66,7 +69,7 @@ class StringDynamicType extends StringType implements DynamicType
         return $valueObject;
     }
 
-    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): string|null
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): int|null
     {
         if ($value === null) {
             return null;
@@ -83,7 +86,7 @@ class StringDynamicType extends StringType implements DynamicType
         }
 
         $stringValue = call_user_func($getterCallable);
-        if ($stringValue !== null && !is_string($stringValue)) {
+        if ($stringValue !== null && !is_int($stringValue)) {
             $class = $value::class;
             $type = get_debug_type($stringValue);
             throw new ShouldNotHappen("{$class}::{$this->getterMethodName} must return a string. {$type} returned.");
@@ -92,8 +95,13 @@ class StringDynamicType extends StringType implements DynamicType
         return $stringValue;
     }
 
-    public function requiresSQLCommentHint(AbstractPlatform $platform): bool
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return false;
+        return $platform->getIntegerTypeDeclarationSQL($column);
+    }
+
+    public function getBindingType(): ParameterType
+    {
+        return ParameterType::INTEGER;
     }
 }

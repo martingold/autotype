@@ -7,4 +7,6 @@ namespace MartinGold\AutoType\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class ValueGetter {}
+class ValueGetter
+{
+}

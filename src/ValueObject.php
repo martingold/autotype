@@ -13,4 +13,11 @@ interface ValueObject
      * @return T
      */
     public function getValue(): mixed;
+
+    /**
+     * @param T $value
+     *
+     * @return self<T>
+     */
+    public static function create(mixed $value): self;
 }

@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace MartinGold\AutoType\TypeDefinitionFinder;
+namespace MartinGold\AutoType\TypeDefinition\Provider;
 
 use League\ConstructFinder\ConstructFinder;
-use MartinGold\AutoType\Factory\TypeDefinitionFactory;
-use MartinGold\AutoType\TypeDefinition;
+use MartinGold\AutoType\TypeDefinition\Driver\TypeDefinitionDriver;
+use MartinGold\AutoType\TypeDefinition\TypeDefinition;
 use ReflectionClass;
 
-final readonly class ClassTypeDefinitionFinder implements TypeDefinitionFinder
+final readonly class ScanTypeDefinitionProvider implements TypeDefinitionProvider
 {
     /**
-     * @param non-empty-list<TypeDefinitionFactory> $dynamicTypeFactories
+     * @param list<TypeDefinitionDriver> $typeDefinitionDrivers
      */
     public function __construct(
         private string $sourceFolder,
-        private array $dynamicTypeFactories,
+        private array $typeDefinitionDrivers,
     ) {
     }
 
@@ -33,7 +33,7 @@ final readonly class ClassTypeDefinitionFinder implements TypeDefinitionFinder
             $class = new ReflectionClass($className);
 
             $factory = null;
-            foreach ($this->dynamicTypeFactories as $dynamicTypeFactory) {
+            foreach ($this->typeDefinitionDrivers as $dynamicTypeFactory) {
                 if (!$dynamicTypeFactory->supports($class)) {
                     continue;
                 }
