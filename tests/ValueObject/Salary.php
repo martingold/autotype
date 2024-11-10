@@ -6,32 +6,38 @@ namespace MartinGold\AutoType\Test\ValueObject;
 
 use MartinGold\AutoType\Attribute\Constructor;
 use MartinGold\AutoType\Attribute\ValueGetter;
-use MartinGold\AutoType\DynamicType\StringDynamicType;
+use MartinGold\AutoType\DynamicType\IntegerDynamicType;
 use MartinGold\AutoType\TypeDefinition\TypeDefinition;
 
-final readonly class PhoneNumber
+final readonly class Salary
 {
+    /**
+     * @param positive-int $amount
+     */
     public function __construct(
-        private string $number,
+        private int $amount,
     ) {
     }
 
     #[ValueGetter]
-    public function getValue(): string
+    public function getValue(): int
     {
-        return $this->number;
+        return $this->amount;
     }
 
+    /**
+     * @param positive-int $amount
+     */
     #[Constructor]
-    public static function from(string $number): self
+    public static function from(int $amount): self
     {
-        return new self($number);
+        return new self($amount);
     }
 
     public static function getDefinition(): TypeDefinition
     {
         return new TypeDefinition(
-            dynamicTypeClass: StringDynamicType::class,
+            dynamicTypeClass: IntegerDynamicType::class,
             typeName: self::class,
             valueObjectClass: self::class,
             getterMethodName: 'getValue',

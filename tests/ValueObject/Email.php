@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace MartinGold\AutoType\Test\ValueObject;
 
-use MartinGold\AutoType\Attribute\Constructor;
-use MartinGold\AutoType\Attribute\ValueGetter;
 use MartinGold\AutoType\DynamicType\StringDynamicType;
 use MartinGold\AutoType\TypeDefinition\TypeDefinition;
+use MartinGold\AutoType\ValueObject;
 
-final readonly class PhoneNumber
+/**
+ * @implements ValueObject<string>
+ */
+final readonly class Email implements ValueObject
 {
     public function __construct(
-        private string $number,
+        private string $email,
     ) {
     }
 
-    #[ValueGetter]
     public function getValue(): string
     {
-        return $this->number;
+        return $this->email;
     }
 
-    #[Constructor]
-    public static function from(string $number): self
+    /**
+     * @param string $value
+     */
+    public static function create(mixed $value): self
     {
-        return new self($number);
+        return new self($value);
     }
 
     public static function getDefinition(): TypeDefinition
@@ -35,7 +38,7 @@ final readonly class PhoneNumber
             typeName: self::class,
             valueObjectClass: self::class,
             getterMethodName: 'getValue',
-            constructorMethodName: 'from',
+            constructorMethodName: 'create',
         );
     }
 }
