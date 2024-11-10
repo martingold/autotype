@@ -2,26 +2,35 @@
 
 Library for auto-registering value objects (crates, DTOs) as Doctrine types.
 
-Would not be nice if you could use your Value Objects as entity type directly?
-You have to create [doctrine type](https://www.doctrine-project.org/projects/doctrine-orm/en/3.3/cookbook/custom-mapping-types.html)
-for every single value object type. This is where AutoType comes in.
+Wouldn't it be nice if you could use your Value Objects as entity type directly?
+With AutoType you do not have to create [doctrine type](https://www.doctrine-project.org/projects/doctrine-orm/en/3.3/cookbook/custom-mapping-types.html)
+for every single value object type.
+
+## Usage
+
+```shell
+composer require martingold/autotype
+```
 
 ```php
 final readonly class Url
 {
-    private string $value;
-
+    private function __construct(
+        private string $value,
+    ) {
+    }
+    
     /**
      * @throws MalformedUrl
      */
-    public function __construct(
-        string $value,
-    ) {
+    #[Constructor]
+    public static function create(string $url): self
+    {
         if (filter_var($value, FILTER_VALIDATE_URL) === false) {
             throw MalformedUrl::fromString($value);
         }
-
-        $this->value = $value;
+        
+        return new self($url )
     }
     
     public function isSecure(): bool
@@ -37,6 +46,26 @@ final readonly class Url
 }
 ```
 
+Register types at the entry point of your application (kernel boot when using symfony):
+```php
+// Get a PSR-6 cache instance
+$cache = $this->container->get(CacheItemPoolInterface::class);
+
+// Alternatively, use Doctrine's PSR-6 metadata cache
+$entityManager = $this->container->get(EntityManagerInterface::class);
+$cache = $entityManager->getConfiguration()->getMetadataCache();
+
+// Create a type provider
+$dynamicTypeProvider = new CachedDynamicTypeProvider(
+    new DefaultDynamicTypeFinder(__DIR__ . '/../ValueObject'),
+    $cache
+);
+
+// Register dynamic types
+(new DynamicTypeRegistry($cachedTypeFinder))->register();
+```
+
+Use the value object directly in your entities.
 ```php
 #[Entity]
 class Company
@@ -48,97 +77,47 @@ class Company
     private Url $url;
 }
 ```
-## Usage
 
-```shell
-composer require martingold/autotype
-```
+### Drivers
+See `tests/Entity` for the example usage of the drivers. The library comes with two default drivers:
+#### AttributeTypeDefinitionDriver
+This driver registers all classes with a `#[ValueGetter]` method as Doctrine types. If a static factory
+method is needed, add the `#[Constructor]` attribute to create the object back from database value.
+#### InterfaceTypeDefinitionDriver
+This driver registers all classes implementing `ValueObject` interface.
 
-### Registering Value Objects
-All classes within source folder containing one method marked with `#[ValueGetter]`
-are registered. You may use a `#[Constructor]` attribute to use value object factory method.
-
-### Bootstraping
-
-You need to register types at the entry point of your application:
-
+#### Custom driver
+If you have existing value objects based on your project's conventions
+and do not want to add additional interfaces or custom attributes, you can implement your own driver and use it during type registration:
 ```php
-// Get PSR-6 cache somewhere
-$cache = $this->container->get(CacheItemPoolInterface::class);
-
-$cachedTypeFinder = new CachedDynamicTypeProvider(
-    new DefaultDynamicTypeFinder(__DIR__ . '/../ValueObject'),
-    $cache
-);
-
-(new DynamicTypeRegistry($cachedTypeFinder))->register();
-```
-Finding the types is quite heavy operation and
-the dynamic type definitions should be cached (or better saved in a compiled DI container for later usage).
-
-### Symfony 
-If you are using Symfony, you may use `martingold/autotype-symfony` (soon™).
-It finds types using during container compilation and is cached in container itself.
-
-## Concepts
-
-### DynamicType
-Represents doctrine type. It knows how to convert value object to database value and back.
-There should be one child of `DynamicType` per possible value object return type (string, int, ...).
-
-### TypeDefinitionFactory
-Class responsible for determining which classes should be treated as auto-registered dynamic types and
-which methods should be used to convert object to database value and to construct the object back.
-
-## Advanced usage
-### Custom object instantiation
-The `#[Constructor]` attribute can be used to used to tell the library to use custom method for constructing the object.
-
-### Existing value objects
-When you have existing way of dealing with value objects (hydrating them from request, ... ) and you do not want to
-clutter all value objects with attributes, you can implement your own TypeDefinitionFactory. The TypeDefinitionFactory is cached,
-so you should not worry about performance impact.
-
-Example for value objects using ValueObject interface:
-```php
-/**
- * @template T of scalar|null
- */
-interface ValueObject
-{
-    /**
-     * @return T
-     */
-    public function getValue(): mixed;
-}
-```
-
-```php
-// Get PSR-6 cache somewhere
-$cache = $this->container->get(CacheItemPoolInterface::class);
-
-$cachedTypeFinder = new CachedDynamicTypeProvider(
-    new ComputeTypeDefinitionFinder(__DIR__ . '/../ValueObject', [
-       new InterfaceValueObjectTypeDefinitionFactory()
+$typeDefinitionProvider = new CachedTypeDefinitionProvider(
+    new ScanTypeDefinitionProvider($sourceFolder, [
+        new CustomTypeDefinitionDriver(),
     ]),
-    $cache
+    $cache,
 );
 
-(new DynamicTypeRegistry($cachedTypeFinder))->register();
+(new DynamicTypeRegistry($typeDefinitionProvider))->register();
 ```
 
+The possibilities are endless. You can even specify your own custom dynamic types in
+case you have special requirements like column length or database-specific optimizations.
+See `AttributeTypeDefinitionDriver` and `InterfaceTypeDefinitionDriver` for more examples.
+
 ```php
-class InterfaceValueObjectTypeDefinitionFactory implements TypeDefinitionFactory
+class CustomTypeDefinitionDriver implements TypeDefinitionDriver
 {
     /**
+     * Should be the class treated as doctrine type?
      * @param ReflectionClass<object> $class
      */
     public function supports(ReflectionClass $class): bool
     {
-        return $class->isSubclassOf(ValueObject::class);
+        return str_ends_with($class->getShortName(), 'Crate');
     }
 
     /**
+     * Get dynamic type class. Whether it is value a string or int.
      * @param ReflectionClass<object> $class
      *
      * @return class-string<DynamicType&Type>
@@ -147,11 +126,13 @@ class InterfaceValueObjectTypeDefinitionFactory implements TypeDefinitionFactory
     {
         return match ($this->getValueMethodReturnType($class)) {
             'string' => StringDynamicType::class,
-            default => throw new UnsupportedType('Only string type is supported.')
+            'int' => IntegerDynamicType::class,
+            default => throw new UnsupportedType('Only string|int type is supported.'),
         };
     }
 
     /**
+     * Name of the method which should be used when persisting object to database. 
      * @param ReflectionClass<object> $class
      */
     public function getValueMethodName(ReflectionClass $class): string
@@ -159,28 +140,34 @@ class InterfaceValueObjectTypeDefinitionFactory implements TypeDefinitionFactory
         return 'getValue';
     }
 
+    /**
+     * Method to use when creating the object from database value. Must have single argument. 
+     */
     public function getConstructorMethodName(ReflectionClass $class): string|null
     {
-        // null means native constructor will be used
-        return null;
+        return $class->hasMethod('of') ? 'of' : null;
     }
 
     /**
+     * Get value getter method return type to determine if database value should be string or int
      * @param ReflectionClass<object> $class
+     *
+     * @throws UnsupportedType
      */
     private function getValueMethodReturnType(ReflectionClass $class): string
     {
         $returnType = $class->getMethod('getValue')->getReturnType();
 
         if (!$returnType instanceof ReflectionNamedType) {
-            throw new UnsupportedType("Intersection or union return type not supported in method {$class->getName()}::{$method->getName()}()");
+            throw new UnsupportedType("Intersection or union return type not supported in method {$class->getName()}::getValue()");
         }
 
         if (!$returnType->isBuiltin()) {
-            throw new UnsupportedType("Only scalar return types are supported in {$class->getName()}::{$method->getName()}()");
+            throw new UnsupportedType("Only scalar return types are supported in {$class->getName()}::getValue()");
         }
 
         return $returnType->getName();
     }
 }
+
 ```
