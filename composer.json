@@ -24,9 +24,11 @@
         "csf": "vendor/bin/php-cs-fixer fix",
         "phpstan": "vendor/bin/phpstan",
         "unit": "vendor/bin/phpunit",
+        "deps": "vendor/bin/composer-dependency-analyser",
         "qa": [
             "@csf",
             "@phpstan",
+            "@deps",
             "@unit"
         ]
     },
@@ -37,7 +39,8 @@
         "friendsofphp/php-cs-fixer": "^3.64",
         "phpunit/phpunit": "^11.4",
         "symfony/cache": "^7.1",
-        "doctrine/orm": "^3.3"
+        "doctrine/orm": "^3.3",
+        "shipmonk/composer-dependency-analyser": "^1.7"
     },
     "require": {
         "php": "^8.3",
