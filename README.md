@@ -59,8 +59,8 @@ $entityManager = $this->container->get(EntityManagerInterface::class);
 $cache = $entityManager->getConfiguration()->getMetadataCache();
 
 // Create a type provider
-$dynamicTypeProvider = new CachedDynamicTypeProvider(
-    new DefaultDynamicTypeFinder(__DIR__ . '/../ValueObject'),
+$cachedTypeFinder = new CachedTypeDefinitionProvider(
+    new DefaultTypeDefinitionProvider(__DIR__ . '/../ValueObject'),
     $cache
 );
 
