@@ -105,6 +105,6 @@ class FloatDynamicType extends Type implements DynamicType
             throw new ShouldNotHappen("Missing 'precision' and/or 'scale' on column {$columnName} in {$this->class}");
         }
 
-        return $platform->getDecimalTypeDeclarationSQL($column);
+        return $platform->getFloatDeclarationSQL($column);
     }
 }
