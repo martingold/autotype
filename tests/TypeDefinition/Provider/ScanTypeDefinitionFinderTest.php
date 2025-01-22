@@ -6,6 +6,7 @@ namespace MartinGold\AutoType\Test\TypeDefinition\Provider;
 
 use MartinGold\AutoType\Test\ValueObject\Email;
 use MartinGold\AutoType\Test\ValueObject\PhoneNumber;
+use MartinGold\AutoType\Test\ValueObject\Rating;
 use MartinGold\AutoType\Test\ValueObject\Salary;
 use MartinGold\AutoType\TypeDefinition\Driver\AttributeTypeDefinitionDriver;
 use MartinGold\AutoType\TypeDefinition\Driver\InterfaceTypeDefinitionDriver;
@@ -28,6 +29,7 @@ class ScanTypeDefinitionFinderTest extends TestCase
             PhoneNumber::getDefinition(),
             Email::getDefinition(),
             Salary::getDefinition(),
+            Rating::getDefinition(),
         ], $dynamicTypeFinder->get());
     }
 }

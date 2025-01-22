@@ -19,6 +19,6 @@ class TypeRegistryTest extends TestCase
             $typeRegistry,
         ))->register();
 
-        self::assertCount(3, $typeRegistry->getMap());
+        self::assertCount(4, $typeRegistry->getMap());
     }
 }

@@ -7,6 +7,7 @@ namespace MartinGold\AutoType\Test\TypeDefinition\Provider;
 use MartinGold\AutoType\Test\MockTypeDefinitionProvider;
 use MartinGold\AutoType\Test\ValueObject\Email;
 use MartinGold\AutoType\Test\ValueObject\PhoneNumber;
+use MartinGold\AutoType\Test\ValueObject\Rating;
 use MartinGold\AutoType\Test\ValueObject\Salary;
 use MartinGold\AutoType\TypeDefinition\Provider\CachedTypeDefinitionProvider;
 use MartinGold\AutoType\TypeDefinition\Provider\TypeDefinitionProvider;
@@ -50,6 +51,7 @@ class CachedDynamicTypeProviderTest extends TestCase
             Salary::getDefinition(),
             PhoneNumber::getDefinition(),
             Email::getDefinition(),
+            Rating::getDefinition(),
         ], $cacheItem->get());
     }
 }

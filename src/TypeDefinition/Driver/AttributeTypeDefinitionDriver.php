@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Type;
 use MartinGold\AutoType\Attribute\Constructor;
 use MartinGold\AutoType\Attribute\ValueGetter;
 use MartinGold\AutoType\DynamicType\DynamicType;
+use MartinGold\AutoType\DynamicType\FloatDynamicType;
 use MartinGold\AutoType\DynamicType\IntegerDynamicType;
 use MartinGold\AutoType\DynamicType\StringDynamicType;
 use MartinGold\AutoType\Exception\ShouldNotHappen;
@@ -36,6 +37,7 @@ class AttributeTypeDefinitionDriver implements TypeDefinitionDriver
         return match ($this->getValueMethodReturnType($class)) {
             'string' => StringDynamicType::class,
             'int' => IntegerDynamicType::class,
+            'float' => FloatDynamicType::class,
             default => throw new UnsupportedType('Only string type is supported.'),
         };
     }

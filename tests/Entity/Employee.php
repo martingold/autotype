@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\Id;
 use LogicException;
 use MartinGold\AutoType\Test\ValueObject\Email;
 use MartinGold\AutoType\Test\ValueObject\PhoneNumber;
+use MartinGold\AutoType\Test\ValueObject\Rating;
 use MartinGold\AutoType\Test\ValueObject\Salary;
 
 #[Entity]
@@ -34,16 +35,21 @@ class Employee
     #[Column(type: Salary::class)]
     private Salary $salary;
 
+    #[Column(type: Rating::class, precision: 4, scale: 15)]
+    private Rating $rating;
+
     public function __construct(
         string $name,
         PhoneNumber $phoneNumber,
         Email $email,
         Salary $salary,
+        Rating $rating,
     ) {
         $this->name = $name;
         $this->phoneNumber = $phoneNumber;
         $this->email = $email;
         $this->salary = $salary;
+        $this->rating = $rating;
     }
 
     public function getId(): int
@@ -73,5 +79,10 @@ class Employee
     public function getSalary(): Salary
     {
         return $this->salary;
+    }
+
+    public function getRating(): Rating
+    {
+        return $this->rating;
     }
 }

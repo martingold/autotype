@@ -6,6 +6,7 @@ namespace MartinGold\AutoType\TypeDefinition\Driver;
 
 use Doctrine\DBAL\Types\Type;
 use MartinGold\AutoType\DynamicType\DynamicType;
+use MartinGold\AutoType\DynamicType\FloatDynamicType;
 use MartinGold\AutoType\DynamicType\IntegerDynamicType;
 use MartinGold\AutoType\DynamicType\StringDynamicType;
 use MartinGold\AutoType\Exception\UnsupportedType;
@@ -33,7 +34,8 @@ class InterfaceTypeDefinitionDriver implements TypeDefinitionDriver
         return match ($this->getValueMethodReturnType($class)) {
             'string' => StringDynamicType::class,
             'int' => IntegerDynamicType::class,
-            default => throw new UnsupportedType('Only string type is supported.'),
+            'float' => FloatDynamicType::class,
+            default => throw new UnsupportedType('Only string|int|float type is supported.'),
         };
     }
 
